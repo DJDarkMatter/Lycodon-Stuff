@@ -1,0 +1,42 @@
+$${
+// --- 1. LOGIN BEREICH ---
+ECHO("/login LÖSCHMICH");
+WAIT(750ms)
+ECHO("/autologin LÖSCHMICH");
+WAIT(750ms)
+ECHO("/autologin LÖSCHMICH");
+WAIT(750ms)
+ECHO("/home tbm");
+WAIT(750ms)
+ECHO("/kit Diamond");;
+
+// Flags zur Steuerung
+#storm_done = 0;
+#night_done = 0;
+#day_trigger_ready = 0;
+
+// --- 2. HAUPTSCHLEIFE ---
+DO;
+    // --- LOGIK FÜR NACHT (13500 - 22000) ---
+    IF((TICKS > 13500) && (TICKS < 22000));
+        IF(#night_done == 0);
+            ECHO("/lvt start");
+            
+            // --- LOG ERGÄNZUNG ---
+            LOG("&8[&6Dayvote&8] &fVote wurde gestartet.");
+            
+            #night_done = 1;
+            #day_trigger_ready = 1; // Merken, dass es Nacht war
+        ENDIF;
+    ELSE;
+        // Sicherheits-Reset falls das Macro tagsüber gestartet wird
+        IF(TICKS < 13500);
+            #night_done = 0;
+        ENDIF;
+    ENDIF;
+
+    // Prüfung alle 10 Sekunden (mit Varianz)
+    WAIT(10000ms,20000ms)
+
+LOOP;
+}$$

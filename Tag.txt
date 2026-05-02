@@ -1,0 +1,7 @@
+$${
+IFMATCHES("%CHATCLEAN%",".*Ein /dayvote wurde von .*");
+    WAIT(250ms);
+    LOG("&8[&6Dayvote&8] §aDu hast für Tag gestimmt!")
+    ECHO("/yes");
+ENDIF
+}$$

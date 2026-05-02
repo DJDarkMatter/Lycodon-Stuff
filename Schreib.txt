@@ -1,0 +1,53 @@
+$${
+&chat = "%CHAT%";
+
+IFMATCHES("%&chat%","(Schreibe|Löse)");
+    &roh = "%&chat%";
+    LOG("&6[DEBUG 1] &eTrigger erkannt.");
+
+    IFMATCHES("%&roh%","§b");
+        LOG("&6[DEBUG 2] &aFarbe §b gefunden.");
+
+        // SCHRITT 3: Extraktion ohne komplexe Regex
+        // Wir splitten die Zeile am §b und nehmen den rechten Teil
+        &rest = ""
+        MATCH(%&roh%,"§b(.+)",&rest,1);
+        
+        // DEBUG 3: Testen ob 'rest' gefüllt ist
+        LOG("&6[DEBUG 3] &dRest nach §b: &f%&rest%");
+
+        // SCHRITT 4: Das Ende (" und...") abschneiden
+        &wort = "%&rest%";
+        // Wir nutzen REPLACE um alles ab dem ersten Leerzeichen gefolgt von 'und' zu löschen
+        REPLACE(&wort," und.*","");
+        
+        LOG("&6[DEBUG 4] &dNach Kürzung: &f%&wort%");
+
+        // SCHRITT 5: Letzte Farbreste im Wort säubern
+        REPLACE(&wort,"§[0-9a-fk-or]","");
+        &finales_wort = "%&wort%";
+
+        LOG("&6[DEBUG 5] &bBereinigtes Wort: &f%&finales_wort%");
+
+        IF(&finales_wort != "");
+            LOG("&6[DEBUG 6] &aValidierung erfolgreich.");
+
+            IF(&finales_wort != @&letzter_wert);
+                @&letzter_wert = "%&finales_wort%";
+                
+                LOG("&6[DEBUG 7] &eWartezeit (8-12s)...");
+                WAIT(8000ms,12000ms);
+                
+                LOG("&6[DEBUG 8] &2!!! ECHO !!! -> &f%&finales_wort%");
+                ECHO("%&finales_wort%");
+            ELSE;
+                LOG("&6[DEBUG 7] &cAbbruch: Wort war bereits dran.");
+            ENDIF;
+        ELSE;
+            LOG("&6[DEBUG 6] &cFehler: finales_wort ist leer geblieben!");
+        ENDIF;
+    ELSE;
+        LOG("&6[DEBUG 2] &cKein §b in der Zeile.");
+    ENDIF;
+ENDIF;
+}$$

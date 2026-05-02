@@ -1,0 +1,77 @@
+$${
+&chat = "%CHATCLEAN%";
+
+IFMATCHES("%&chat%","^\[(Debug|SYSTEM|Quiz|Fehler)\]");
+ELSE;
+    IFMATCHES("%&chat%","Löse\s+(.+)\s+und\s+erhalte");
+        LOG("&b[SYSTEM] &fFinale Stabilisierung läuft...");
+
+        // --- DEBUG 1 & 2: INPUT ---
+        &raw = ""; MATCH("%&chat%","Löse\s+(.+)\s+und\s+erhalte",&raw,1);
+        &clean = "%&raw%"; STRIP(&clean); REPLACE(&clean," ","");
+        LOG("&6[Debug 1/2] &fInput: &e%&clean%");
+
+        // --- DEBUG 4: ZAHLEN-EXTRAKTION (Zuerst!) ---
+        &z1_s = ""; &z2_s = "";
+        IFMATCHES("%&clean%","(\d+)\D+(\d+)",&m);
+            MATCH("%&clean%","(\d+)\D+(\d+)",&z1_s,1);
+            MATCH("%&clean%","(\d+)\D+(\d+)",&z2_s,2);
+        ELSE;
+            IFMATCHES("%&clean%","(\d+)",&m);
+                MATCH("%&clean%","(\d+)",&z1_s,1); &z2_s = "0";
+            ENDIF;
+        ENDIF;
+        LOG("&6[Debug 4] &fZ1: &e%&z1_s% &f| Z2: &e%&z2_s%");
+
+        // --- DEBUG 3: TYP-ERKENNUNG (PRÄZISER) ---
+        &typ = "UNBEKANNT";
+        IF(CONTAINS("%&clean%","+")); &typ = "PLUS";
+        ELSEIF(CONTAINS("%&clean%","-")); &typ = "MINUS";
+        ELSEIF(CONTAINS("%&clean%","/")); &typ = "DURCH";
+        ELSEIF(CONTAINS("%&clean%","*") || CONTAINS("%&clean%","x") || CONTAINS("%&clean%","×")); &typ = "MAL";
+        ELSEIF(CONTAINS("%&clean%","^")); &typ = "HOCH";
+        ELSE;
+            // Wenn Z2 existiert, kann es keine Wurzel sein
+            IF("%&z2_s%" != "0" && "%&z2_s%" != ""); &typ = "MAL"; ELSE; &typ = "WURZEL"; ENDIF;
+        ENDIF;
+        LOG("&6[Debug 3] &fTyp: &b%&typ%");
+
+        // --- DEBUG 5: KONVERTIERUNG (SET-ZWANG) ---
+        // Wir nutzen SET, da deine Mod direkte Zuweisungen wie #n1 = %&z1_s% oft ignoriert
+        SET(#n1,%&z1_s%);
+        SET(#n2,%&z2_s%);
+        
+        // Letzte Rettung gegen 0-Bug
+        IF(#n1 == 0 && "%&z1_s%" != "0"); #n1 = %@&z1_s%; ENDIF;
+        IF(#n2 == 0 && "%&z2_s%" != "0" && "%&z2_s%" != ""); #n2 = %@&z2_s%; ENDIF;
+        LOG("&6[Debug 5] &fWerte: #n1=%#n1% | #n2=%#n2%");
+
+        // --- DEBUG 6: RECHNUNG ---
+        #res = 0;
+        IF(&typ == "PLUS"); #res = #n1 + #n2;
+        ELSEIF(&typ == "MINUS"); #res = #n1 - #n2;
+        ELSEIF(&typ == "MAL"); #res = #n1 * #n2;
+        ELSEIF(&typ == "DURCH"); IF(#n2 != 0); #res = #n1 / #n2; ENDIF;
+        ELSEIF(&typ == "HOCH"); 
+            #res = 1; #base = #n1; #exp = #n2;
+            FOR(#i,1,%#exp%); #res = #res * #base; NEXT;
+        ELSEIF(&typ == "WURZEL");
+            #val = #n1; IF(#val == 0); #val = #n2; ENDIF;
+            FOR(#j,1,100); #q = #j * #j; IF(#q == #val); #res = #j; BREAK; ENDIF; NEXT;
+        ENDIF;
+        LOG("&6[Debug 6] &fErgebnis: &a%#res%");
+
+        // SENDEN
+        IF(#res != 0);
+            IF(#res != @#last_res);
+                @#last_res = %#res%;
+                LOG("&d[Quiz] &fWarte 12s...");
+                WAIT(12000ms);
+                ECHO("%#res%");
+            ENDIF;
+        ELSE;
+            LOG("&c[Fehler] &fCheck Debug 5 (Werte sind 0)!");
+        ENDIF;
+    ENDIF;
+ENDIF;
+}$$
