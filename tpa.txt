@@ -1,0 +1,14 @@
+// Filtert nur den Namen am Anfang der Nachricht
+IFMATCHES("%CHATCLEAN%","^(.+)\shas\srequested\sto\steleport\sto\syou.");
+
+    // Extrahiert nur das erste Wort (den Spielernamen)
+    MATCH("%CHATCLEAN%","^([^\s]+)",&player);
+
+    // Kurzer Log, genau wie du ihn wolltest
+    LOG("&b[TP] &fAngenommen: &e%&player%");
+
+    WAIT(250ms);
+    ECHO("/tpaccept");
+
+ENDIF;
+}$$
