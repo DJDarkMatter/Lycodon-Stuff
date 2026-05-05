@@ -1,0 +1,15 @@
+$${
+// Reagiert auf die Nachricht laut Screenshot
+IFMATCHES("%CHATCLEAN%","^[Teleport] (.+) möchte zu dir.");
+
+    // Extrahiert den Namen des Spielers
+    MATCH("%CHATCLEAN%","^[Teleport] ([^\s]+)",&player);
+
+    // Die gewünschte Log-Ausgabe
+    LOG("&b[TP] &f%&player% &fangenommen.");
+
+    WAIT(250ms);
+    ECHO("/tpaccept");
+
+ENDIF;
+}$$
